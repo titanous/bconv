@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package strconv
+package bconv
 
 import "errors"
 
@@ -15,20 +15,20 @@ var ErrSyntax = errors.New("invalid syntax")
 // A NumError records a failed conversion.
 type NumError struct {
 	Func string // the failing function (ParseBool, ParseInt, ParseUint, ParseFloat)
-	Num  string // the input
+	Num  []byte // the input
 	Err  error  // the reason the conversion failed (ErrRange, ErrSyntax)
 }
 
 func (e *NumError) Error() string {
-	return "strconv." + e.Func + ": " + `parsing "` + e.Num + `": ` + e.Err.Error()
+	return "strconv." + e.Func + ": " + `parsing "` + string(e.Num) + `": ` + e.Err.Error()
 }
 
-func syntaxError(fn, str string) *NumError {
-	return &NumError{fn, str, ErrSyntax}
+func syntaxError(fn string, b []byte) *NumError {
+	return &NumError{fn, b, ErrSyntax}
 }
 
-func rangeError(fn, str string) *NumError {
-	return &NumError{fn, str, ErrRange}
+func rangeError(fn string, b []byte) *NumError {
+	return &NumError{fn, b, ErrRange}
 }
 
 const intSize = 32 << uint(^uint(0)>>63)
@@ -44,7 +44,7 @@ func cutoff64(base int) uint64 {
 }
 
 // ParseUint is like ParseInt but for unsigned numbers.
-func ParseUint(s string, base int, bitSize int) (n uint64, err error) {
+func ParseUint(s []byte, base int, bitSize int) (n uint64, err error) {
 	var cutoff, maxVal uint64
 
 	if bitSize == 0 {
@@ -77,7 +77,7 @@ func ParseUint(s string, base int, bitSize int) (n uint64, err error) {
 		}
 
 	default:
-		err = errors.New("invalid base " + Itoa(base))
+		err = errors.New("invalid base")
 		goto Error
 	}
 
@@ -144,7 +144,7 @@ Error:
 // digits, err.Error = ErrSyntax; if the value corresponding
 // to s cannot be represented by a signed integer of the
 // given size, err.Error = ErrRange.
-func ParseInt(s string, base int, bitSize int) (i int64, err error) {
+func ParseInt(s []byte, base int, bitSize int) (i int64, err error) {
 	const fnParseInt = "ParseInt"
 
 	if bitSize == 0 {
@@ -189,7 +189,7 @@ func ParseInt(s string, base int, bitSize int) (i int64, err error) {
 }
 
 // Atoi is shorthand for ParseInt(s, 10, 0).
-func Atoi(s string) (i int, err error) {
+func Atoi(s []byte) (i int, err error) {
 	i64, err := ParseInt(s, 10, 0)
 	return int(i64), err
 }

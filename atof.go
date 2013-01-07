@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package strconv implements conversions to and from string representations
-// of basic data types.
-package strconv
+// Package bconv implements conversions from byte slice representations of numbers.
+package bconv
 
 // decimal to binary floating point conversion.
 // Algorithm:
@@ -16,7 +15,7 @@ import "math"
 
 var optimize = true // can change for testing
 
-func equalIgnoreCase(s1, s2 string) bool {
+func equalIgnoreCase(s1, s2 []byte) bool {
 	if len(s1) != len(s2) {
 		return false
 	}
@@ -36,7 +35,7 @@ func equalIgnoreCase(s1, s2 string) bool {
 	return true
 }
 
-func special(s string) (f float64, ok bool) {
+func special(s []byte) (f float64, ok bool) {
 	if len(s) == 0 {
 		return
 	}
@@ -44,26 +43,26 @@ func special(s string) (f float64, ok bool) {
 	default:
 		return
 	case '+':
-		if equalIgnoreCase(s, "+inf") || equalIgnoreCase(s, "+infinity") {
+		if equalIgnoreCase(s, []byte("+inf")) || equalIgnoreCase(s, []byte("+infinity")) {
 			return math.Inf(1), true
 		}
 	case '-':
-		if equalIgnoreCase(s, "-inf") || equalIgnoreCase(s, "-infinity") {
+		if equalIgnoreCase(s, []byte("-inf")) || equalIgnoreCase(s, []byte("-infinity")) {
 			return math.Inf(-1), true
 		}
 	case 'n', 'N':
-		if equalIgnoreCase(s, "nan") {
+		if equalIgnoreCase(s, []byte("nan")) {
 			return math.NaN(), true
 		}
 	case 'i', 'I':
-		if equalIgnoreCase(s, "inf") || equalIgnoreCase(s, "infinity") {
+		if equalIgnoreCase(s, []byte("inf")) || equalIgnoreCase(s, []byte("infinity")) {
 			return math.Inf(1), true
 		}
 	}
 	return
 }
 
-func (b *decimal) set(s string) (ok bool) {
+func (b *decimal) set(s []byte) (ok bool) {
 	i := 0
 	b.neg = false
 	b.trunc = false
@@ -156,7 +155,7 @@ func (b *decimal) set(s string) (ok bool) {
 // readFloat reads a decimal mantissa and exponent from a float
 // string representation. It sets ok to false if the number could
 // not fit return types or is invalid.
-func readFloat(s string) (mantissa uint64, exp int, neg, trunc, ok bool) {
+func readFloat(s []byte) (mantissa uint64, exp int, neg, trunc, ok bool) {
 	const uint64digits = 19
 	i := 0
 
@@ -446,7 +445,7 @@ func atof32exact(mantissa uint64, exp int, neg bool) (f float32, ok bool) {
 
 const fnParseFloat = "ParseFloat"
 
-func atof32(s string) (f float32, err error) {
+func atof32(s []byte) (f float32, err error) {
 	if val, ok := special(s); ok {
 		return float32(val), nil
 	}
@@ -485,7 +484,7 @@ func atof32(s string) (f float32, err error) {
 	return f, err
 }
 
-func atof64(s string) (f float64, err error) {
+func atof64(s []byte) (f float64, err error) {
 	if val, ok := special(s); ok {
 		return val, nil
 	}
@@ -524,7 +523,7 @@ func atof64(s string) (f float64, err error) {
 	return f, err
 }
 
-// ParseFloat converts the string s to a floating-point number
+// ParseFloat converts the byte slice s to a floating-point number
 // with the precision specified by bitSize: 32 for float32, or 64 for float64.
 // When bitSize=32, the result still has type float64, but it will be
 // convertible to float32 without changing its value.
@@ -541,7 +540,7 @@ func atof64(s string) (f float64, err error) {
 // If s is syntactically well-formed but is more than 1/2 ULP
 // away from the largest floating point number of the given size,
 // ParseFloat returns f = ±Inf, err.Error = ErrRange.
-func ParseFloat(s string, bitSize int) (f float64, err error) {
+func ParseFloat(s []byte, bitSize int) (f float64, err error) {
 	if bitSize == 32 {
 		f1, err1 := atof32(s)
 		return float64(f1), err1

@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package strconv_test
+package bconv_test
 
 import (
-	. "strconv"
 	"testing"
+
+	. "github.com/titanous/bconv"
 )
 
 type shiftTest struct {

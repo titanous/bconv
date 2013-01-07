@@ -2,7 +2,22 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package strconv
+package bconv
+
+type decimalSlice struct {
+	d      []byte
+	nd, dp int
+	neg    bool
+}
+
+type floatInfo struct {
+	mantbits uint
+	expbits  uint
+	bias     int
+}
+
+var float32info = floatInfo{23, 8, -127}
+var float64info = floatInfo{52, 11, -1023}
 
 // An extFloat represents an extended floating-point number, with more
 // precision than a float64. It does not try to save bits: the
